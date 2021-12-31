@@ -111,11 +111,10 @@ let findPersonById = function(personId, done){
 //Performing updates on the database by running find, edit and then Save
 let findHumanById = function(personId, done){
      let newFood = 'Hamburger';
-     Person.findById({name: 'Toyo'}, (error, result) => {
+     Person.findById(personId, (error, result) => {
       if(error){
            console.log(error)
       }else{
-           result.age = 30
            result.favoriteFoods.push(newFood)
            result.save((error, recordUpdate) => {
                 if(error){
