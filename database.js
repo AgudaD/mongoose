@@ -1,5 +1,5 @@
-let mongoose = require('mongoose');
-// const { MongoClient } = require('mongodb');    
+const mongoose = require("mongoose");
+    
 //connecting mongoose
 const MONGODB_URI = 'mongodb+srv://Aguda:oluwadavey14@cluster123.kmcwy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
@@ -7,8 +7,9 @@ mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
 mongoose.connection.on('connected', () => {
      console.log('connected')
 })
+
 //creating the person(human) prototype
-const humanSchema = new mongoose.Schema({
+let personSchema = new mongoose.Schema({
       name: {
             type: String,
             required: true
@@ -18,24 +19,18 @@ const humanSchema = new mongoose.Schema({
          favoriteFoods: [String]
       })
 
+let Person = mongoose.model("Person", personSchema);
+
+
 //Creating and Saving a Record of a Model
-let Person = mongoose.model('Person', humanSchema)
-
-let data = ({
-     name: "Liam",
-     age: 30,
-     favoriteFoods: ['Plantain, Rice'] 
-}) 
-
-const person = new Person(data) // instance of the model
-
-person.save((error) => {
+let person = new Person({name: "Liam", age: 30, favoriteFoods: ['Plantain, Rice']})
+person.save((error, data) => {
      if(error){
-          console.log('Error')
+          console.log(error);
      }else{
-          console.log('Saved')
+          console.log(data);
      }
-}) 
+})
 
 //create many people with model.create()
 let arrayOfPeople = [
@@ -56,125 +51,105 @@ let arrayOfPeople = [
      },
 ];
 
-let createManyPeople = new Person(arrayOfPeople)
-     Person.create(arrayOfPeople, (error) => {
+//inserting the arrayOfPeople into the database
+     Person.create(arrayOfPeople, (error, data) => {
           if(error){
-               console.log('error')
+               console.log(error)
           }else{
-               console.log('done')
+               console.log(data)
           }
      })
 
+
 //using model.find() to search the database
-     // Person.find({name: 'Omar'}, (error) => {
-     //      if(error){
-     //           console.log('Error')
-     //      }else{
-     //           console.log('finished')
-     //      }
-     // })
-let findPeopleByName = function(personName){
-     Person.find({name: personName}, (error) =>{
+     Person.find({name: 'Omar'}, (error, data) => {
           if(error){
-               console.log('Error')
+               console.log(error)
           }else{
-               console.log('Worked!')
+               console.log(data)
           }
      })
-}
 
 
 
 //using model.findOne() to return a single matching document from your database
-let findOneByFavoriteFoods = function(personFavoriteFoods){
-     Person.findOne({favoriteFoods: {$all: [personFavoriteFoods]}}, (error) =>{
-          if(error){
-               console.log('Error')
-          }else{
-               console.log('Worked!')
-          }
-     })
-}
-
-
-//Using model.findById() to search the database by _id
-let findPersonById = function(personId, done){
-     Person.findById(personId, (error, result)  =>{
+     Person.findOne({favoriteFoods: {$all: ['Rice']}}, (error, data) =>{
           if(error){
                console.log(error)
           }else{
-               done(null, result)
+               console.log(data)
           }
      })
-}
+
+
+
+//Using model.findById() to search the database by _id
+
+     Person.findById('61cf24537ad6b9b1f7a51c61', (error, data)  =>{
+          if(error){
+               console.log(error)
+          }else{
+               console.log(data)
+          }
+     })
+
 
 //Performing updates on the database by running find, edit and then Save
-let findHumanById = function(personId, done){
-     let newFood = 'Hamburger';
-     Person.findById(personId, (error, result) => {
+
+     Person.findOne({name: 'Toyo'}, (error, result) => {
       if(error){
            console.log(error)
       }else{
-           result.favoriteFoods.push(newFood)
+           result.favoriteFoods.push("Yamarita")
            result.save((error, recordUpdate) => {
                 if(error){
                      console.log(error);
                 }else{
-                     done(null, recordUpdate)
+                    console.log(recordUpdate)
                 }
            }) 
       }
  })
-}
+
 
 //Here, we're performing new updates on a document with model.findOneAndUpdate()
-let findAndUpdate = (personName, done) => {
-     let query = {name: personName}
-     let update = {age: 20}
-     let options = { new: true};
-     Person.findOneAndUpdate(query, update, options, (error, gotPerson) => {
+     Person.findOneAndUpdate({name: 'Liam'}, {age: 23}, {new: true}, (error, gotPerson) => {
           if(error){
-               console.log('There was an error');
+               console.log(error);
           }
-          done(null,gotPerson)
+          console.log(gotPerson)
      });
-};
+
 
 //Deleting a document using model.findByIdAndRemove
-let removeById = (personId, done) => {
-  Person.findByIdAndRemove(personId, (error, deletedRecord) => {
+  Person.findByIdAndRemove('61cf24537ad6b9b1f7a51c60', {new: true}, (error, deletedRecord) => {
        if(error){
             console.log(error);
        }else{
-            done(null, deletedRecord)
+            console.log(deletedRecord)
        }
   })
-}
+
 
   //Deleting Many Documents with model.remove()
-  let removeManyPeople = (done) => {
-       let nameToRemove = "Liam"
-       Person.remove({name: nameToRemove}, (error, JSONStatus) => {
+       Person.remove({name: "Omar"}, (error, JSONStatus) => {
             if(error){
                  console.log(error);
             }else{
-                 done(null, JSONStatus)
+                 console.log(JSONStatus)
             }
        })
-  }
   
+
   //Using chain search query helpers to narrow search for results in the database
-  let queryChain = (done) => {
-     let foodSearch = "Rice";
-     Person.find({favoriteFoods: {$all: [foodSearch]}})
-          .sort({name: 1})
+     Person.find({favoriteFoods: {$all: ['Rice']}})
+          .sort({name: 'asc'})
           .limit(2)
           .select({age: true})
-          .exec((error, filteredSearch) => {
+          .exec((error, data) => {
                if(error){
                     console.log(error);
                }else{
-                    done(null, filteredSearch)
+                    console.log(data)
                }
           }) 
-}
